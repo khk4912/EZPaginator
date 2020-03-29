@@ -7,6 +7,7 @@
 import discord
 from EZpaginator import Paginator
 
+
 class Example(discord.Client):
     async def on_message(self, message):
         ## 일반 메시지 
