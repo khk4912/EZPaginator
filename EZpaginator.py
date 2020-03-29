@@ -27,11 +27,6 @@ class Paginator:
         if contents is None and embeds is None:
             raise YouLLamaed("LLama ate all of your contents and embeds.")
 
-        if contents is None:
-            self.isEmbed = True
-        else:
-            self.isEmbed = False
-
     def emoji_checker(self, payload):
         if payload.member.bot:
             return False
@@ -74,17 +69,18 @@ class Paginator:
     async def go_previous(self):
         if self.index != 0:
             self.index -= 1
-            if self.isEmbed:
+            if self.contents is None:
                 await self.message.edit(embed=self.embeds[self.index])
             else:
                 await self.message.edit(content=self.contents[self.index])
 
     async def go_next(self):
-        if self.isEmbed:
+        if self.contents is None:
             if self.index != len(self.embeds) - 1:
                 self.index += 1
                 await self.message.edit(embed=self.embeds[self.index])
 
         else:
             if self.index != len(self.contents) - 1:
+                self.index += 1
                 await self.message.edit(content=self.contents[self.index])
