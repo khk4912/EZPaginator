@@ -1,16 +1,13 @@
 # EZPaginator
 Simple pagination wrapper for discord.py.
 
-![2](https://user-images.githubusercontent.com/30457148/77853887-a242de80-7221-11ea-88b2-638a2e486560.gif)
-
-
 ## Install
 ```
 pip install EZPaginator
 ```
 
 ## Usage
-Example
+Example Bot
 ```py
 import discord
 from EZPaginator import Paginator
@@ -40,4 +37,8 @@ class Example(discord.Client):
 client = Example()
 client.run('token')
 ```
+
+
+![2](https://user-images.githubusercontent.com/30457148/77853887-a242de80-7221-11ea-88b2-638a2e486560.gif)
+
 
