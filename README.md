@@ -6,7 +6,7 @@
 ## Example
 ```py
 import discord
-from EZpaginator import Paginator
+from EZPaginator import Paginator
 
 
 class Example(discord.Client):
