@@ -1,9 +1,16 @@
-## EZPaginator
-사용하기 쉬운 discord.py의 페이징 구현, EZPaginator입니다.
-
+# EZPaginator
+Simple pagination wrapper for discord.py.
 
 ![2](https://user-images.githubusercontent.com/30457148/77853887-a242de80-7221-11ea-88b2-638a2e486560.gif)
-## Example
+
+
+## Install
+```
+pip install EZPaginator
+```
+
+## Usage
+Example
 ```py
 import discord
 from EZPaginator import Paginator
