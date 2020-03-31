@@ -1,4 +1,5 @@
 # EZPaginator
+![](https://img.shields.io/badge/python-%3E%3D%203.6-blue) ![](https://img.shields.io/badge/discord.py-%3E%3D1.0.0-blue)
 Simple pagination wrapper for discord.py.
 
 ## Install
