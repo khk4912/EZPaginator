@@ -32,7 +32,7 @@ class Example(discord.Client):
             embed3=discord.Embed(title="Embed3", description="embed3")
             embeds = [embed1, embed2, embed3]
 
-            msg = await message.channel.send(embed=embed)
+            msg = await message.channel.send(embed=embed1)
             page = Paginator(self, msg, embeds=embeds)
             await page.start()
 
