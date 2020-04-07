@@ -7,6 +7,10 @@ class YouLLamaed(Exception):
     pass
 
 
+class Submarine(Exception):
+    pass
+
+
 class Paginator:
     def __init__(
         self,
@@ -27,8 +31,11 @@ class Paginator:
         if contents is None and embeds is None:
             raise YouLLamaed("LLama ate all of your contents and embeds.")
 
+        if not isinstance(self.timeout, int):
+            raise Submarine("Your submarine tried to jump in a string.")
+
     def emoji_checker(self, payload):
-        if payload.member.bot:
+        if payload.user_id == self.ctx.user.id:
             return False
 
         if payload.message_id != self.message.id:
@@ -45,15 +52,35 @@ class Paginator:
 
     async def start(self):
         await self.add_reactions()
+
         while True:
             try:
-                payload = await self.ctx.wait_for(
-                    "raw_reaction_add",
-                    check=self.emoji_checker,
+                add_reaction = asyncio.ensure_future(
+                    self.ctx.wait_for(
+                        "raw_reaction_add", check=self.emoji_checker
+                    )
+                )
+                remove_reaction = asyncio.ensure_future(
+                    self.ctx.wait_for(
+                        "raw_reaction_remove", check=self.emoji_checker
+                    )
+                )
+
+                done, pending = await asyncio.wait(
+                    (add_reaction, remove_reaction),
+                    return_when=asyncio.FIRST_COMPLETED,
                     timeout=self.timeout,
                 )
 
+                for i in pending:
+                    i.cancel()
+
+                if len(done) == 0:
+                    raise asyncio.TimeoutError()
+
+                payload = done.pop().result()  ## done : set
                 await self.pagination(payload.emoji)
+
             except asyncio.TimeoutError:
                 try:
                     await self.message.clear_reactions()
