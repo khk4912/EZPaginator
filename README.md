@@ -41,6 +41,5 @@ client.run('token')
 ```
 
 
-![2](https://user-images.githubusercontent.com/30457148/77853887-a242de80-7221-11ea-88b2-638a2e486560.gif)
-
+![exammple](https://user-images.githubusercontent.com/30457148/78644598-14d24f00-78f1-11ea-8671-d8e5f4c2d1cc.gif)
 
