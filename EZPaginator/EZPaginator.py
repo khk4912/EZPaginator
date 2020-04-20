@@ -84,8 +84,9 @@ class Paginator:
             except asyncio.TimeoutError:
                 try:
                     await self.message.clear_reactions()
+                    break
                 except:
-                    pass
+                    break
 
     async def pagination(self, emoji):
         if str(emoji) == "⬅️":
