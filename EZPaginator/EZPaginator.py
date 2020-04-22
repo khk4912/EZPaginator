@@ -19,14 +19,17 @@ class Paginator:
         contents: list = None,
         embeds: list = None,
         timeout: int = 30,
+        use_more: bool = False,
     ):
         self.ctx = ctx
         self.message = message  # Pagination Target
         self.timeout = timeout
         self.reactions = ["⬅️", "➡️"]
+        self.more_reactions = ["⏪", "⬅️", "➡️", "⏩"]
         self.contents = contents
         self.index = 0
         self.embeds = embeds
+        self.use_more = use_more
 
         if contents is None and embeds is None:
             raise YouLLamaed("LLama ate all of your contents and embeds.")
@@ -41,13 +44,21 @@ class Paginator:
         if payload.message_id != self.message.id:
             return False
 
-        if str(payload.emoji) in self.reactions:
-            return True
+        if self.use_more:
+            if str(payload.emoji) in self.more_reactions:
+                return True
+        else:
+            if str(payload.emoji) in self.reactions:
+                return True
         return False
 
     async def add_reactions(self):
-        for i in self.reactions:
-            await self.message.add_reaction(i)
+        if self.use_more:
+            for i in self.more_reactions:
+                await self.message.add_reaction(i)
+        else:
+            for i in self.reactions:
+                await self.message.add_reaction(i)
         return True
 
     async def start(self):
@@ -94,6 +105,11 @@ class Paginator:
         elif str(emoji) == "➡️":
             await self.go_next()
 
+        elif str(emoji) == "⏪":
+            await self.go_first()
+        elif str(emoji) == "⏩":
+            await self.go_last()
+
     async def go_previous(self):
         if self.index != 0:
             self.index -= 1
@@ -111,4 +127,23 @@ class Paginator:
         else:
             if self.index != len(self.contents) - 1:
                 self.index += 1
+                await self.message.edit(content=self.contents[self.index])
+
+    async def go_first(self):
+        if self.index != 0:
+            self.index = 0
+            if self.contents is None:
+                await self.message.edit(embed=self.embeds[self.index])
+            else:
+                await self.message.edit(content=self.contents[self.index])
+
+    async def go_last(self):
+        if self.contents is None:
+            if self.index != len(self.embeds) - 1:
+                self.index = len(self.embeds) - 1
+                await self.message.edit(embed=self.embeds[self.index])
+
+        else:
+            if self.index != len(self.contents) - 1:
+                self.index = len(self.contents) - 1
                 await self.message.edit(content=self.contents[self.index])
