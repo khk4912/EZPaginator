@@ -11,16 +11,15 @@ pip install EZPaginator
 ## Usage
 
 ### Parameters
-|          Name         |                     Type                    |               Description               |
-|:---------------------:|:-------------------------------------------:|:---------------------------------------:|
-|          ctx          | `discord.Client`<br>`discord.ext.commands.Bot` |                                         |
-|        message        |              `discord.Message`              | Message that wants to apply pagination. |
-|        contents       |                    `list`                   |             Contents list              |
-|         embeds        |                    `list`                   |               Embeds list              |
-|  timeout `<optional>` |                    `int`                    |       Reaction add/remove timeout       |
-| use_more `<optional>` |                    `bool`                   |    Add emoji for going to first/last    |
-|   only `<optional>`   |              `discord.abc.User`             |  Paginator works only for selected user |
-
+|          Name         |                     Type                    |                 Description                |
+|:---------------------:|:-------------------------------------------:|:------------------------------------------:|
+|          ctx          | `discord.Client` `discord.ext.commands.Bot` |                                            |
+|        message        |              `discord.Message`              |   Message that wants to apply pagination.  |
+|        contents       |                    `list`                   |               Contents' list               |
+|         embeds        |                    `list`                   |                Embeds' list                |
+|  timeout `<optional>` |                    `int`                    |         Reaction add/remove timeout        |
+| use_more `<optional>` |                    `bool`                   |      Add emoji for going to first/last     |
+|   only `<optional>`   |              `discord.abc.User`             | Paginator will work only for selected user |
 
 ### Example Bot
 ```py
