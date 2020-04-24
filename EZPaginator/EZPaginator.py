@@ -39,8 +39,9 @@ class Paginator:
         if not isinstance(self.timeout, int):
             raise Submarine("Your submarine tried to jump in a string.")
 
-        if not isinstance(self.only, discord.abc.User):
-            raise TypeError
+        if self.only is not None:
+            if not isinstance(self.only, discord.abc.User):
+                raise TypeError
 
     def emoji_checker(self, payload):
         if payload.user_id == self.ctx.user.id:
