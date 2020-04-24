@@ -49,6 +49,10 @@ class Paginator:
         if payload.message_id != self.message.id:
             return False
 
+        if self.only is not None:
+            if payload.user_id != self.only.id:
+                return False
+
         if self.use_more:
             if str(payload.emoji) in self.more_reactions:
                 return True

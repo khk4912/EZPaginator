@@ -9,7 +9,20 @@ pip install EZPaginator
 ```
 
 ## Usage
-Example Bot
+
+### Parameters
+|          Name         |                     Type                    |               Description               |
+|:---------------------:|:-------------------------------------------:|:---------------------------------------:|
+|          ctx          | `discord.Client` `discord.ext.commands.Bot` |                                         |
+|        message        |              `discord.Message`              | Message that wants to apply pagination. |
+|        contents       |                    `list`                   |             Contents' list              |
+|         embeds        |                    `list`                   |               Embeds' list              |
+|  timeout `<optional>` |                    `int`                    |       Reaction add/remove timeout       |
+| use_more `<optional>` |                    `bool`                   |    Add emoji for going to first/last    |
+|   only `<optional>`   |              `discord.abc.User`             |  Paginator works only for selected user |
+
+
+### Example Bot
 ```py
 import discord
 from EZPaginator import Paginator
@@ -43,3 +56,10 @@ client.run('token')
 
 ![exammple](https://user-images.githubusercontent.com/30457148/78644598-14d24f00-78f1-11ea-8671-d8e5f4c2d1cc.gif)
 
+
+## Contacts
+khk49121@gmail.com
+Discord -> BGM#0970
+
+## License
+[MIT License](https://github.com/khk4912/EZPaginator/blob/master/LICENSE)
