@@ -13,7 +13,7 @@ pip install EZPaginator
 ### Parameters
 |          Name         |                     Type                    |               Description               |
 |:---------------------:|:-------------------------------------------:|:---------------------------------------:|
-|          ctx          | `discord.Client` `discord.ext.commands.Bot` |                                         |
+|          ctx          | `discord.Client`<br>`discord.ext.commands.Bot` |                                         |
 |        message        |              `discord.Message`              | Message that wants to apply pagination. |
 |        contents       |                    `list`                   |             Contents' list              |
 |         embeds        |                    `list`                   |               Embeds' list              |
@@ -58,7 +58,7 @@ client.run('token')
 
 
 ## Contacts
-khk49121@gmail.com
+khk49121@gmail.com <br>
 Discord -> BGM#0970
 
 ## License
