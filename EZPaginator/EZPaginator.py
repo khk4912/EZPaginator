@@ -20,6 +20,7 @@ class Paginator:
         embeds: list = None,
         timeout: int = 30,
         use_more: bool = False,
+        only: discord.abc.User = None,
     ):
         self.ctx = ctx
         self.message = message  # Pagination Target
@@ -30,12 +31,16 @@ class Paginator:
         self.index = 0
         self.embeds = embeds
         self.use_more = use_more
+        self.only = only
 
         if contents is None and embeds is None:
             raise YouLLamaed("LLama ate all of your contents and embeds.")
 
         if not isinstance(self.timeout, int):
             raise Submarine("Your submarine tried to jump in a string.")
+
+        if not isinstance(self.only, discord.abc.User):
+            raise TypeError
 
     def emoji_checker(self, payload):
         if payload.user_id == self.ctx.user.id:
