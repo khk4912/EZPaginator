@@ -5,7 +5,10 @@ import discord
 from discord.ext import commands
 
 
-from .exceptions import MissingAttributeException
+from .exceptions import MissingAttributeException, InvaildArgumentException
+
+
+Emoji = List[Union[discord.Emoji, discord.Reaction, discord.PartialEmoji, str]]
 
 
 class Paginator:
@@ -24,6 +27,8 @@ class Paginator:
         use_extend: bool = False,
         only: Optional[discord.abc.User] = None,
         clear_react: bool = False,
+        basic_emojis: Optional[Emoji] = None,
+        extended_emojis: Optional[Emoji] = None,
     ) -> None:
         self.bot = bot
         self.message = message
@@ -32,9 +37,10 @@ class Paginator:
         self.timeout = timeout
         self.use_extend = use_extend
         self.only = only
+        self.clear_react = clear_react
         self.basic_emojis = ["⬅️", "➡️"]
         self.extended_emojis = ["⏪", "⬅️", "➡️", "⏩"]
-        self.clear_rect = clear_react
+
         # TODO : 이모지 커스텀
         self.index = 0
 
@@ -53,6 +59,26 @@ class Paginator:
 
         if not isinstance(timeout, int):
             raise TypeError("timeout must be int.")
+
+        if basic_emojis is not None:
+            if self.use_extend:
+                raise InvaildArgumentException("use_extend should be False.")
+
+            if len(set(self.basic_emojis)) != 2:
+                raise InvaildArgumentException(
+                    "There should be 2 elements in basic_emojis."
+                )
+            self.basic_emojis = basic_emojis
+
+        if extended_emojis is not None:
+            if not self.use_extend:
+                raise InvaildArgumentException("use_extend should be True.")
+
+            if len(set(self.extended_emojis)) != 4:
+                raise InvaildArgumentException(
+                    "Ther should be 4 elements in extended_emojis"
+                )
+            self.extended_emojis = extended_emojis
 
     def emoji_check(self, payload: discord.RawReactionActionEvent) -> bool:
         if payload.user_id == self.bot.user.id:
@@ -106,11 +132,13 @@ class Paginator:
                 payload = done.pop().result()
                 await self.handle_pagination(payload.emoji)
 
+            except asyncio.TimeoutError:
+                break
+
             except:
-                pass
+                raise
 
     async def add_reaction(self) -> None:
-
         if self.use_extend:
             for i in self.extended_emojis:
                 await self.message.add_reaction(i)
@@ -119,15 +147,21 @@ class Paginator:
                 await self.message.add_reaction(i)
 
     async def handle_pagination(self, emoji: discord.PartialEmoji) -> None:
-        if str(emoji) == "⬅️":
-            await self.go_previous()
-        elif str(emoji) == "➡️":
-            await self.go_next()
+        if self.use_extend:
+            if str(emoji) == self.extended_emojis[1]:
+                await self.go_previous()
+            elif str(emoji) == self.extended_emojis[2]:
+                await self.go_next()
 
-        elif str(emoji) == "⏪":
-            await self.go_first()
-        elif str(emoji) == "⏩":
-            await self.go_last()
+            elif str(emoji) == self.extended_emojis[0]:
+                await self.go_first()
+            elif str(emoji) == self.extended_emojis[3]:
+                await self.go_last()
+        else:
+            if str(emoji) == self.basic_emojis[0]:
+                await self.go_previous()
+            elif str(emoji) == self.basic_emojis[1]:
+                await self.go_next()
 
     async def go_previous(self) -> None:
         if self.index == 0:
