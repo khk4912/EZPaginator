@@ -44,11 +44,11 @@ class Paginator:
         # TODO : 이모지 커스텀
         self.index = 0
 
-        if not (
-            isinstance(bot, discord.Client)
-            or isinstance(bot, discord.AutoShardedClient)
-            or isinstance(bot, commands.Bot)
-            or isinstance(bot, commands.AutoShardedBot)
+        if (
+            not isinstance(bot, discord.Client)
+            or not isinstance(bot, discord.AutoShardedClient)
+            or not isinstance(bot, commands.Bot)
+            or not isinstance(bot, commands.AutoShardedBot)
         ):
             raise TypeError
 
