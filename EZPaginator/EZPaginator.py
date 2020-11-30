@@ -45,11 +45,13 @@ class Paginator:
         self.index = 0
 
         if (
-            not isinstance(bot, discord.Client)
-            or not isinstance(bot, discord.AutoShardedClient)
-            or not isinstance(bot, commands.Bot)
-            or not isinstance(bot, commands.AutoShardedBot)
+            isinstance(bot, discord.Client)
+            or isinstance(bot, discord.AutoShardedClient)
+            or isinstance(bot, commands.Bot)
+            or isinstance(bot, commands.AutoShardedBot)
         ):
+            pass
+        else:
             raise TypeError
 
         if contents is None and embeds is None:
