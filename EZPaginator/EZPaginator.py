@@ -12,6 +12,31 @@ Emoji = List[Union[discord.Emoji, discord.Reaction, discord.PartialEmoji, str]]
 
 
 class Paginator:
+    """
+    Class for Pagination.
+
+    Attributes
+    ----------
+    bot : Union[Client, AutoShardedClient, Bot, AutoShardedBot]
+        Bot or Client class.
+    message : discord.Message
+        A message which wants to apply pagination.
+    contents : List[str], optional
+        List of contents.
+    embeds : List[Embed], optional
+        List of embeds. If both contents and embeds are given, the priority is embed.
+    timeout : int, default 30
+        A timeout of receiving Emoji event.
+    use_extend : bool, default False
+        Whether to use extended emoji(which includes first/end buttons.).
+    only : discord.abc.User, optional
+        If a parameter is given, the library responds only to the selected user.
+    basic_emoji : List[Emoji], optional
+        Custom basic emoji list. There should be 2 emojis.
+    extended_emojis : List[Emoji], optional
+        Extended emoji list, There should be 4 emojis.
+    """
+
     def __init__(
         self,
         bot: Union[
@@ -49,6 +74,13 @@ class Paginator:
             or isinstance(bot, discord.AutoShardedClient)
             or isinstance(bot, commands.Bot)
             or isinstance(bot, commands.AutoShardedBot)
+        ):
+            pass
+        elif (
+            issubclass(bot, discord.Client)
+            or issubclass(bot, discord.AutoShardedClient)
+            or issubclass(bot, commands.Bot)
+            or issubclass(bot, commands.AutoShardedBot)
         ):
             pass
         else:

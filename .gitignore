@@ -139,3 +139,8 @@ cython_debug/
 
 #Custom
 test.py
+conf
+source/conf.py
+source/index.rst
+Makefile
+make.bat
