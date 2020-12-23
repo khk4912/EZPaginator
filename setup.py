@@ -9,7 +9,7 @@ setup(
     author_email="khk49121@gmail.com",
     url="https://github.com/khk4912/EZPaginator",
     packages=find_packages(),
-    keywords=["discord", "paginaion"],
+    keywords=["discord.py", "paginaion"],
     python_requires=">=3.6",
     install_requires=["discord.py"],
     zip_safe=False,
