@@ -35,6 +35,8 @@ class Paginator:
         Custom basic emoji list. There should be 2 emojis.
     extended_emojis : List[Emoji], optional
         Extended emoji list, There should be 4 emojis.
+    auto_delete : bool,
+        The number of seconds to wait in the background before deleting the target message.
     """
 
     def __init__(
@@ -54,6 +56,7 @@ class Paginator:
         clear_react: bool = False,
         basic_emojis: Optional[Emoji] = None,
         extended_emojis: Optional[Emoji] = None,
+        auto_delete: bool = False,
     ) -> None:
         self.bot = bot
         self.message = message
@@ -65,8 +68,7 @@ class Paginator:
         self.clear_react = clear_react
         self.basic_emojis = ["⬅️", "➡️"]
         self.extended_emojis = ["⏪", "⬅️", "➡️", "⏩"]
-
-        # TODO : 이모지 커스텀
+        self.auto_delete = auto_delete
         self.index = 0
 
         if (
@@ -169,9 +171,12 @@ class Paginator:
             except asyncio.TimeoutError:
                 break
 
+        if self.auto_delete:
+            try:
+                await self.message.delete()
             except:
-                raise
-
+                pass
+ 
     async def add_reaction(self) -> None:
         if self.use_extend:
             for i in self.extended_emojis:
