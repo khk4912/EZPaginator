@@ -35,7 +35,7 @@ class Paginator:
         Custom basic emoji list. There should be 2 emojis.
     extended_emojis : List[Emoji], optional
         Extended emoji list, There should be 4 emojis.
-    auto_delete : bool
+    auto_delete : bool, default False
         Whether to delete message after timeout.
     """
 

@@ -11,15 +11,18 @@ pip install EZPaginator
 ## Usage
 
 ### Parameters
-|          Name         |                     Type                    |                 Description                |
-|:---------------------:|:-------------------------------------------:|:------------------------------------------:|
-|          ctx          | `discord.Client` `discord.ext.commands.Bot` |                                            |
-|        message        |              `discord.Message`              |   Message that wants to apply pagination.  |
-|        contents       |                    `list`                   |               Contents list                |
-|         embeds        |                    `list`                   |                Embeds list                 |
-|  timeout `<optional>` |                    `int`                    |         Reaction add/remove timeout        |
-| use_more `<optional>` |                    `bool`                   |      Add emoji for going to first/last     |
-|   only `<optional>`   |              `discord.abc.User`             | Paginator will work only for selected user |
+| Parameter | Type | Description |
+|-|-|-|
+| bot | Union[Client, AutoShardedClient, Bot, AutoShardedBot] | Bot or Client class. |
+| message | discord.Message | A message which wants to apply pagination. |
+| contents | List[str], optional | List of contents. |
+| embeds | List[Embed], optional | List of embeds.If both contents and embeds are given, the priority is embed. |
+| timeout | int, default 30 | A timeout of receiving Emoji event. Defaults to 30. |
+| use_extend | bool, default False | Whether to use extended emoji(which includes first/end buttons.). Defaults to False. |
+| only | discord.abc.User, optional | If a parameter is given, the library will respond only to the selected user. |
+| basic_emoji | List[Emoji], optional | Custom basic emoji list. There should be 2 emojis. |
+| extended_emojis | List[Emoji], optional | Custom extended emoji list, There should be 4 emojis. |
+| auto_delete | bool, default False | Whether to delete message after timeout. Defaults to False. |
 
 ### Example Bot
 ```py
