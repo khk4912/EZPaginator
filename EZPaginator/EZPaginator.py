@@ -30,13 +30,13 @@ class Paginator:
     use_extend : bool, default False
         Whether to use extended emoji(which includes first/end buttons.).
     only : discord.abc.User, optional
-        If a parameter is given, the library responds only to the selected user.
+        If a parameter is given, the paginator will respond only to the selected user.
     basic_emoji : List[Emoji], optional
         Custom basic emoji list. There should be 2 emojis.
     extended_emojis : List[Emoji], optional
         Extended emoji list, There should be 4 emojis.
-    auto_delete : bool,
-        The number of seconds to wait in the background before deleting the target message.
+    auto_delete : bool
+        Whether to delete message after timeout.
     """
 
     def __init__(
@@ -176,7 +176,7 @@ class Paginator:
                 await self.message.delete()
             except:
                 pass
- 
+
     async def add_reaction(self) -> None:
         if self.use_extend:
             for i in self.extended_emojis:
