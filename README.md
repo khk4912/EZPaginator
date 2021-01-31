@@ -28,6 +28,8 @@ pip install EZPaginator
 <details><summary>Click to expand example</summary>
 <p>
 
+[Full example code](/Example/example.py)
+
 ### Basic text pagination
 ```py
 @bot.command(name="text")
