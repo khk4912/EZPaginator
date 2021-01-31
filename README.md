@@ -24,43 +24,82 @@ pip install EZPaginator
 | extended_emojis | List[Emoji], optional | Custom extended emoji list, There should be 4 emojis. |
 | auto_delete | bool, default False | Whether to delete message after timeout. Defaults to False. |
 
-### Example Bot
+## Example
+<details><summary>Click to expand example</summary>
+<p>
+
+### Basic text pagination
 ```py
-import discord
-from EZPaginator import Paginator
+@bot.command(name="text")
+async def text_pagination(ctx: Context):
+    """ Basic text pagination """
 
+    msg = await ctx.send("Test1")
+    contents = ["Test1", "Test2", "Test3"]
 
-class Example(discord.Client):
-    async def on_message(self, message):
-        ## 일반 메시지 
-        if message.content == '!페이징':
-            msg = await message.channel.send("페이지1")
-            contents = ['페이지1', '페이지2', '페이지3']
+    page = Paginator(bot=bot, message=msg, contents=contents)
+    await page.start()
 
-            page = Paginator(self, msg, contents=contents)
-            await page.start()
-
-        ## Embed 
-        elif message.content == '!페이징2':
-            embed1=discord.Embed(title="Embed1", description="embed1")
-            embed2=discord.Embed(title="Embed2", description="embed2")
-            embed3=discord.Embed(title="Embed3", description="embed3")
-            embeds = [embed1, embed2, embed3]
-
-            msg = await message.channel.send(embed=embed1)
-            page = Paginator(self, msg, embeds=embeds)
-            await page.start()
-
-client = Example()
-client.run('token')
 ```
+![Basic text](https://i.imgur.com/eHND0WA.gif)
+
+### Text pagination with extended emojis
+```py
+@bot.command(name="text2")
+async def text_pagination_with_extend(ctx: Context):
+    """ Text pagination with extended emoji """
+
+    msg = await ctx.send("Test1")
+    contents = ["Test1", "Test2", "Test3"]
+
+    page = Paginator(bot=bot, message=msg, contents=contents, use_extend=True)
+    await page.start()
+```
+![Extended text](https://i.imgur.com/20yOaf3.gif)
+
+### Basic embed pagination
+```py
+@bot.command(name="embed")
+async def embed_pagination(ctx: Context):
+    """ Basic Embed pagination """
+
+    embed1 = discord.Embed(title="Test1", description="Page1")
+    embed2 = discord.Embed(title="Test2", description="Page2")
+    embed3 = discord.Embed(title="Test3", description="Page3")
+    embeds = [embed1, embed2, embed3]
+
+    msg = await ctx.send(embed=embed1)
+
+    page = Paginator(bot=bot, message=msg, embeds=embeds)
+    await page.start()
+```
+![Basic embed](https://i.imgur.com/LGqm6Jl.gif)
+
+### Embed pagination with extended emojis
+```py
+@bot.command(name="embed2")
+async def embed_pagination_with_extend(ctx: Context):
+    """ Embed pagination with extended emoji """
+
+    embed1 = discord.Embed(title="Test1", description="Page1")
+    embed2 = discord.Embed(title="Test2", description="Page2")
+    embed3 = discord.Embed(title="Test3", description="Page3")
+    embeds = [embed1, embed2, embed3]
+
+    msg = await ctx.send(embed=embed1)
+
+    page = Paginator(bot=bot, message=msg, embeds=embeds, use_extend=True)
+    await page.start()
+```
+![Extended Embed](https://i.imgur.com/Py74Ybl.gif)
 
 
-![exammple](https://user-images.githubusercontent.com/30457148/78644598-14d24f00-78f1-11ea-8671-d8e5f4c2d1cc.gif)
-
+</p>
+</details>
+<br>
 
 ## Contacts
-khk49121@gmail.com <br>
+khk49121@gmail.com  
 Discord -> BGM#0970
 
 ## License
