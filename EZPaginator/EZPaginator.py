@@ -31,7 +31,7 @@ class Paginator:
         Whether to use extended emoji(which includes first/end buttons.).
     only : discord.abc.User, optional
         If a parameter is given, the paginator will respond only to the selected user.
-    basic_emoji : List[Emoji], optional
+    basic_emojis : List[Emoji], optional
         Custom basic emoji list. There should be 2 emojis.
     extended_emojis : List[Emoji], optional
         Extended emoji list, There should be 4 emojis.
