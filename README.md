@@ -113,8 +113,7 @@ async def embed_pagination_with_extend(ctx: Context):
 
 ## Contacts
 
-khk4912@uniquecode.team  
-Discord -> BGM#0970
+BGM#0970
 
 ## License
 
