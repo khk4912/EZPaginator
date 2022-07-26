@@ -1,160 +1,226 @@
 import asyncio
-from typing import List, Optional, Union
+from enum import Enum, auto
+from abc import ABC, abstractmethod
 
-import discord
-from discord.ext import commands
+from discord import (
+    Embed,
+    Emoji,
+    Interaction,
+    InteractionMessage,
+    Message,
+    RawReactionActionEvent,
+)
+from discord.ext.commands import Context
+
+from EZPaginator.exceptions import InvaildArgumentException
 
 
-from .exceptions import MissingAttributeException, InvaildArgumentException
+class ContextType(Enum):
+    CTX = auto()
+    INTERACTION = auto()
 
 
-Emoji = List[Union[discord.Emoji, discord.Reaction, discord.PartialEmoji, str]]
+class PaginatorMode(Enum):
+    EMBED = auto()
+    CONTENT = auto()
 
 
-class Paginator:
-    """
-    Class for Pagination.
+class PaginatorABC(ABC):
+    @abstractmethod
+    async def start(self) -> None:
+        pass
 
-    Attributes
-    ----------
-    bot : Union[Client, AutoShardedClient, Bot, AutoShardedBot]
-        Bot or Client class.
-    message : discord.Message
-        A message which wants to apply pagination.
-    contents : List[str], optional
-        List of contents.
-    embeds : List[Embed], optional
-        List of embeds. If both contents and embeds are given, the priority is embed.
-    timeout : int, default 30
-        A timeout of receiving Emoji event.
-    use_extend : bool, default False
-        Whether to use extended emoji(which includes first/end buttons.).
-    only : discord.abc.User, optional
-        If a parameter is given, the paginator will respond only to the selected user.
-    basic_emojis : List[Emoji], optional
-        Custom basic emoji list. There should be 2 emojis.
-    extended_emojis : List[Emoji], optional
-        Extended emoji list, There should be 4 emojis.
-    auto_delete : bool, default False
-        Whether to delete message after timeout.
-    """
+    @abstractmethod
+    async def stop(self) -> None:
+        pass
 
+
+class Paginator(PaginatorABC):
     def __init__(
         self,
-        bot: Union[
-            discord.Client,
-            discord.AutoShardedClient,
-            commands.Bot,
-            commands.AutoShardedBot,
-        ],
-        message: discord.Message,
-        contents: Optional[List[str]] = None,
-        embeds: Optional[List[discord.Embed]] = None,
+        context: Context | Interaction,
         timeout: int = 30,
+        embeds: list[Embed] = [],
+        contents: list[str] = [],
+        start_index: int = 0,
+        auto_clear_emoji: bool = True,
+        auto_delete_message: bool = False,
         use_extend: bool = False,
-        only: Optional[discord.abc.User] = None,
-        clear_react: bool = False,
-        basic_emojis: Optional[Emoji] = None,
-        extended_emojis: Optional[Emoji] = None,
-        auto_delete: bool = False,
+        emojis: list[str | Emoji] = ["⬅️", "➡️"],
+        extended_emojis: list[str | Emoji] = ["⏪", "⬅️", "➡️", "⏩"],
+        only: list[int] = [],
     ) -> None:
-        self.bot = bot
-        self.message = message
-        self.contents = contents
-        self.embeds = embeds
+        self.context = context
         self.timeout = timeout
+        self.index = start_index
+        self.auto_clear_emoji = auto_clear_emoji
+        self.auto_delete_message = auto_delete_message
+
+        self.embeds = embeds
+        self.contents = contents
+
         self.use_extend = use_extend
+        self.emojis = emojis
+        self.extended_emojis = extended_emojis
+
         self.only = only
-        self.clear_react = clear_react
-        self.basic_emojis = ["⬅️", "➡️"]
-        self.extended_emojis = ["⏪", "⬅️", "➡️", "⏩"]
-        self.auto_delete = auto_delete
-        self.index = 0
 
-        if (
-            isinstance(bot, discord.Client)
-            or isinstance(bot, discord.AutoShardedClient)
-            or isinstance(bot, commands.Bot)
-            or isinstance(bot, commands.AutoShardedBot)
-        ):
-            pass
-        elif (
-            issubclass(bot, discord.Client)
-            or issubclass(bot, discord.AutoShardedClient)
-            or issubclass(bot, commands.Bot)
-            or issubclass(bot, commands.AutoShardedBot)
-        ):
-            pass
+        if isinstance(context, Context):
+            self.context_mode = ContextType.CTX
+        elif isinstance(context, Interaction):
+            self.context_mode = ContextType.INTERACTION
         else:
-            raise TypeError
+            raise TypeError("context must be Context or Interaction!")
 
-        if contents is None and embeds is None:
-            raise MissingAttributeException(
-                "Both contents and embeds are None."
-            )
+        if embeds:
+            self.paginator_mode = PaginatorMode.EMBED
+        elif contents:
+            self.paginator_mode = PaginatorMode.CONTENT
+        else:
+            raise InvaildArgumentException("embeds or contents must be not empty!")
 
-        if not isinstance(timeout, int):
-            raise TypeError("timeout must be int.")
+        self.__message: Message | InteractionMessage | None = None
 
-        if basic_emojis is not None:
-            if self.use_extend:
-                raise InvaildArgumentException("use_extend should be False.")
-
-            if len(set(self.basic_emojis)) != 2:
-                raise InvaildArgumentException(
-                    "There should be 2 elements in basic_emojis."
-                )
-            self.basic_emojis = basic_emojis
-
-        if extended_emojis is not None:
-            if not self.use_extend:
-                raise InvaildArgumentException("use_extend should be True.")
-
-            if len(set(self.extended_emojis)) != 4:
-                raise InvaildArgumentException(
-                    "Ther should be 4 elements in extended_emojis"
-                )
-            self.extended_emojis = extended_emojis
-
-    def emoji_check(self, payload: discord.RawReactionActionEvent) -> bool:
-        if payload.user_id == self.bot.user.id:
+    def _emoji_check(self, payload: RawReactionActionEvent) -> bool:
+        context = self.context
+        bot = (
+            context.bot
+            if isinstance(context, Context)
+            else context._state._get_client()
+        )
+        if not bot.user:
             return False
 
-        if payload.message_id != self.message.id:
+        if not self.__message:
             return False
 
-        if self.only is not None:
-            if payload.user_id != self.only.id:
+        if payload.user_id == bot.user.id:
+            return False
+
+        if payload.message_id != self.__message.id:
+            return False
+
+        if self.only:
+            if payload.user_id not in self.only:
                 return False
 
         if self.use_extend:
             if str(payload.emoji) not in self.extended_emojis:
                 return False
         else:
-            if str(payload.emoji) not in self.basic_emojis:
+            if str(payload.emoji) not in self.emojis:
                 return False
 
         return True
 
+    async def _ctx_start(self) -> Message:
+        ctx = self.context
+        assert isinstance(ctx, Context)
+
+        if self.paginator_mode == PaginatorMode.EMBED:
+            msg = await ctx.send(embed=self.embeds[self.index])
+        else:
+            msg = await ctx.send(self.contents[self.index])
+
+        return msg
+
+    async def _interaction_start(self) -> InteractionMessage:
+        interaction = self.context
+        assert isinstance(interaction, Interaction)
+
+        if self.paginator_mode == PaginatorMode.EMBED:
+            await interaction.response.send_message(embed=self.embeds[self.index])
+
+        else:
+            await interaction.response.send_message(self.contents[self.index])
+
+        original_message = await interaction.original_message()
+
+        return original_message
+
+    async def _go_first(self) -> None:
+        self.index = 0
+
+    async def _go_previous(self) -> None:
+        if self.index == 0:
+            return
+
+        self.index -= 1
+
+    async def _go_next(self) -> None:
+        if self.paginator_mode == PaginatorMode.EMBED:
+            if self.index == len(self.embeds) - 1:
+                return
+        else:
+            if self.index == len(self.contents) - 1:
+                return
+
+        self.index += 1
+
+    async def _go_last(self) -> None:
+        self.index = len(self.embeds) - 1
+
+    async def _handle_pagination(self, emoji: str) -> None:
+        assert self.__message
+
+        if self.use_extend:
+            if emoji == self.extended_emojis[0]:
+                await self._go_first()
+            elif emoji == self.extended_emojis[1]:
+                await self._go_previous()
+            elif emoji == self.extended_emojis[2]:
+                await self._go_next()
+            elif emoji == self.extended_emojis[3]:
+                await self._go_last()
+
+        else:
+            if emoji == self.emojis[0]:
+                await self._go_previous()
+            elif emoji == self.emojis[1]:
+                await self._go_next()
+
+        if self.paginator_mode == PaginatorMode.EMBED:
+            await self.__message.edit(embed=self.embeds[self.index])
+        else:
+            await self.__message.edit(content=self.contents[self.index])
+
     async def start(self) -> None:
-        await self.add_reaction()
+        context = self.context
+        if self.context_mode == ContextType.CTX:
+            msg = await self._ctx_start()
+        else:
+            msg = await self._interaction_start()
+
+        self.__message = msg
+
+        if self.use_extend:
+            for i in self.extended_emojis:
+                await msg.add_reaction(i)
+        else:
+            for i in self.emojis:
+                await msg.add_reaction(i)
+
+        bot = (
+            context.bot
+            if isinstance(context, Context)
+            else context._state._get_client()
+        )
 
         while True:
+
+            add_reaction_event = asyncio.create_task(
+                bot.wait_for(
+                    "raw_reaction_add", timeout=self.timeout, check=self._emoji_check
+                )
+            )
+            remove_reaction_event = asyncio.create_task(
+                bot.wait_for(
+                    "raw_reaction_remove", timeout=self.timeout, check=self._emoji_check
+                )
+            )
             try:
-                add_reaction = asyncio.ensure_future(
-                    self.bot.wait_for(
-                        "raw_reaction_add", check=self.emoji_check
-                    )
-                )
-
-                remove_reaction = asyncio.ensure_future(
-                    self.bot.wait_for(
-                        "raw_reaction_remove", check=self.emoji_check
-                    )
-                )
-
                 done, pending = await asyncio.wait(
-                    (add_reaction, remove_reaction),
+                    (add_reaction_event, remove_reaction_event),
                     return_when=asyncio.FIRST_COMPLETED,
                     timeout=self.timeout,
                 )
@@ -166,81 +232,18 @@ class Paginator:
                     raise asyncio.TimeoutError
 
                 payload = done.pop().result()
-                await self.handle_pagination(payload.emoji)
-
+                await self._handle_pagination(str(payload.emoji))
             except asyncio.TimeoutError:
+                await self.stop()
                 break
 
-        if self.auto_delete:
-            try:
-                await self.message.delete()
-            except:
-                pass
+    async def stop(self) -> None:
+        assert self.__message
 
-    async def add_reaction(self) -> None:
-        if self.use_extend:
-            for i in self.extended_emojis:
-                await self.message.add_reaction(i)
-        else:
-            for i in self.basic_emojis:
-                await self.message.add_reaction(i)
-
-    async def handle_pagination(self, emoji: discord.PartialEmoji) -> None:
-        if self.use_extend:
-            if str(emoji) == self.extended_emojis[1]:
-                await self.go_previous()
-            elif str(emoji) == self.extended_emojis[2]:
-                await self.go_next()
-
-            elif str(emoji) == self.extended_emojis[0]:
-                await self.go_first()
-            elif str(emoji) == self.extended_emojis[3]:
-                await self.go_last()
-        else:
-            if str(emoji) == self.basic_emojis[0]:
-                await self.go_previous()
-            elif str(emoji) == self.basic_emojis[1]:
-                await self.go_next()
-
-    async def go_previous(self) -> None:
-        if self.index == 0:
+        if self.auto_delete_message:
+            await self.__message.delete()
             return
 
-        self.index -= 1
-        if self.contents is None:
-            await self.message.edit(embed=self.embeds[self.index])
-        else:
-            await self.message.edit(content=self.contents[self.index])
-
-    async def go_next(self) -> None:
-        if self.embeds is not None:
-            if self.index != len(self.embeds) - 1:
-                self.index += 1
-                await self.message.edit(embed=self.embeds[self.index])
-
-        elif self.contents is not None:
-            if self.index != len(self.contents) - 1:
-                self.index += 1
-                await self.message.edit(content=self.contents[self.index])
-
-    async def go_first(self) -> None:
-        if self.index == 0:
+        if self.auto_clear_emoji:
+            await self.__message.clear_reactions()
             return
-
-        self.index = 0
-
-        if self.contents is None:
-            await self.message.edit(embed=self.embeds[self.index])
-        else:
-            await self.message.edit(content=self.contents[self.index])
-
-    async def go_last(self) -> None:
-        if self.embeds is not None:
-            if self.index != len(self.embeds) - 1:
-                self.index = len(self.embeds) - 1
-                await self.message.edit(embed=self.embeds[self.index])
-
-        elif self.contents is not None:
-            if self.index != len(self.contents) - 1:
-                self.index = len(self.contents) - 1
-                await self.message.edit(content=self.contents[self.index])
