@@ -144,3 +144,4 @@ source/conf.py
 source/index.rst
 Makefile
 make.bat
+.DS_Store
