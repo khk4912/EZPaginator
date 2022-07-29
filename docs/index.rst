@@ -5,6 +5,7 @@
 
 Welcome to EZPaginator's documentation!
 =======================================
+EZPaginator is a easy-to-use pagination library for discord.py.
 
 
 .. toctree::
@@ -15,7 +16,7 @@ Welcome to EZPaginator's documentation!
 
 Indices and tables
 ==================
-
+* :doc:`Examples <./examples>`
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
