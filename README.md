@@ -33,7 +33,6 @@ pip3 install EZPaginator
 <details>
     <summary>Click to expand example</summary>
 
-[Full example code](/Example)
 
 ### Basic Emebd Pagination
 
