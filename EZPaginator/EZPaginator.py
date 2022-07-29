@@ -13,7 +13,7 @@ from discord import (
 from discord.abc import User
 from discord.ext.commands import Context
 
-from EZPaginator.exceptions import InvaildArgumentException
+from .exceptions import InvaildArgumentException
 
 
 class ContextType(Enum):
