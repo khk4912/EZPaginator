@@ -134,7 +134,6 @@ Commands w/ custom emojis  |  Slash Command w/ extended custom emojis
 ### Auto-fill Index mode
 
 If `auto_fill_index` is True, `{current_page}` and `{total_pages}` will be automatically filled with the current page and total pages.  
-Auto-fill Index also works with contents.
 
 ```py
 @bot.command()
