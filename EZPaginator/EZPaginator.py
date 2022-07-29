@@ -40,9 +40,9 @@ class Paginator(PaginatorABC):
     def __init__(
         self,
         context: Context | Interaction,
-        timeout: int = 30,
         embeds: list[Embed] = [],
         contents: list[str] = [],
+        timeout: int = 30,
         start_index: int = 0,
         auto_clear_emoji: bool = True,
         auto_delete_message: bool = False,
