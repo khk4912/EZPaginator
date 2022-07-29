@@ -59,7 +59,7 @@ class Paginator(PaginatorABC):
         context : Context | Interaction
             _description_
         timeout : int, optional
-            _description_, by default 30
+            Timeout of the paginator, by default 30
         embeds : list[Embed], optional
             _description_, by default []
         contents : list[str], optional
@@ -67,19 +67,19 @@ class Paginator(PaginatorABC):
         start_index : int, optional
             _description_, by default 0
         auto_clear_emoji : bool, optional
-            _description_, by default True
+            Whether to clear the emoji when the pagination is stopped by function stop() or by timeout. by default True.
         auto_delete_message : bool, optional
-            _description_, by default False
+            Whether to delete the message when the pagination is stopped by function stop() or by timeout. by default False.
         use_extend : bool, optional
-            _description_, by default False
+            Whether to use the extended emoji set(First, Previous, Next, Last). by default False.
         emojis : list[str  |  Emoji], optional
-            _description_, by default ["⬅️", "➡️"]
+            List of emojis to use for pagination. by default ["⬅️", "➡️"]
         extended_emojis : list[str  |  Emoji], optional
-            _description_, by default ["⏪", "⬅️", "➡️", "⏩"]
+            List of extended emojis to use for pagination, by default ["⏪", "⬅️", "➡️", "⏩"]
         only : User | None, optional
-            _description_, by default None
+            Restrain the pagination to only the specified user, by default None.
         auto_fill_index : bool, optional
-            _description_, by default False
+            Enable auto-fill index mode, by default False.
 
         Raises
         ------
@@ -166,7 +166,6 @@ class Paginator(PaginatorABC):
 
     def _embed_auto_index(self, embed: Embed) -> Embed:
         embed_dict = embed.to_dict()
-        print(embed_dict)
 
         if "title" in embed_dict:
             embed_dict["title"] = self._embed_fill_index(embed_dict["title"])
@@ -349,9 +348,15 @@ class Paginator(PaginatorABC):
         assert self.__message
 
         if self.auto_delete_message:
-            await self.__message.delete()
+            try:
+                await self.__message.delete()
+            except:
+                pass
             return
 
         if self.auto_clear_emoji:
-            await self.__message.clear_reactions()
+            try:
+                await self.__message.clear_reactions()
+            except:
+                pass
             return
