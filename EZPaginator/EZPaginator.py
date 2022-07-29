@@ -1,6 +1,6 @@
 import asyncio
-from enum import Enum, auto
 from abc import ABC, abstractmethod
+from enum import Enum, auto
 
 from discord import (
     Embed,
@@ -10,6 +10,7 @@ from discord import (
     Message,
     RawReactionActionEvent,
 )
+from discord.abc import User
 from discord.ext.commands import Context
 
 from EZPaginator.exceptions import InvaildArgumentException
@@ -48,8 +49,46 @@ class Paginator(PaginatorABC):
         use_extend: bool = False,
         emojis: list[str | Emoji] = ["⬅️", "➡️"],
         extended_emojis: list[str | Emoji] = ["⏪", "⬅️", "➡️", "⏩"],
-        only: list[int] = [],
+        only: User | None = None,
+        auto_fill_index: bool = False,
     ) -> None:
+        """_summary_
+
+        Parameters
+        ----------
+        context : Context | Interaction
+            _description_
+        timeout : int, optional
+            _description_, by default 30
+        embeds : list[Embed], optional
+            _description_, by default []
+        contents : list[str], optional
+            _description_, by default []
+        start_index : int, optional
+            _description_, by default 0
+        auto_clear_emoji : bool, optional
+            _description_, by default True
+        auto_delete_message : bool, optional
+            _description_, by default False
+        use_extend : bool, optional
+            _description_, by default False
+        emojis : list[str  |  Emoji], optional
+            _description_, by default ["⬅️", "➡️"]
+        extended_emojis : list[str  |  Emoji], optional
+            _description_, by default ["⏪", "⬅️", "➡️", "⏩"]
+        only : User | None, optional
+            _description_, by default None
+        auto_fill_index : bool, optional
+            _description_, by default False
+
+        Raises
+        ------
+        InvaildArgumentException
+            _description_
+        InvaildArgumentException
+            _description_
+        """
+
         self.context = context
         self.timeout = timeout
         self.index = start_index
@@ -64,20 +103,25 @@ class Paginator(PaginatorABC):
         self.extended_emojis = extended_emojis
 
         self.only = only
+        self.auto_fill_index = auto_fill_index
 
         if isinstance(context, Context):
             self.context_mode = ContextType.CTX
         elif isinstance(context, Interaction):
             self.context_mode = ContextType.INTERACTION
         else:
-            raise TypeError("context must be Context or Interaction!")
+            raise InvaildArgumentException(
+                "Parameter 'context' must be Context or Interaction!"
+            )
 
         if embeds:
             self.paginator_mode = PaginatorMode.EMBED
         elif contents:
             self.paginator_mode = PaginatorMode.CONTENT
         else:
-            raise InvaildArgumentException("embeds or contents must be not empty!")
+            raise InvaildArgumentException(
+                "Parameter 'embeds' or 'contents' must not be empty!"
+            )
 
         self.__message: Message | InteractionMessage | None = None
 
@@ -88,6 +132,7 @@ class Paginator(PaginatorABC):
             if isinstance(context, Context)
             else context._state._get_client()
         )
+
         if not bot.user:
             return False
 
@@ -101,7 +146,7 @@ class Paginator(PaginatorABC):
             return False
 
         if self.only:
-            if payload.user_id not in self.only:
+            if payload.user_id != self.only.id:
                 return False
 
         if self.use_extend:
@@ -113,14 +158,59 @@ class Paginator(PaginatorABC):
 
         return True
 
+    def _embed_fill_index(self, content: str) -> str:
+        return content.format(
+            current_page=self.index + 1,
+            total_pages=len(self.embeds),
+        )
+
+    def _embed_auto_index(self, embed: Embed) -> Embed:
+        embed_dict = embed.to_dict()
+        print(embed_dict)
+
+        if "title" in embed_dict:
+            embed_dict["title"] = self._embed_fill_index(embed_dict["title"])
+        if "description" in embed_dict:
+            embed_dict["description"] = self._embed_fill_index(
+                embed_dict["description"]
+            )
+
+        if "fields" in embed_dict:
+            for field in embed_dict["fields"]:
+                field["name"] = self._embed_fill_index(field["name"])
+                field["value"] = self._embed_fill_index(field["value"])
+
+        if "footer" in embed_dict:
+            if embed_dict["footer"]:
+                if footer_text := embed_dict["footer"]["text"]:
+                    embed_dict["footer"]["text"] = self._embed_fill_index(footer_text)
+
+        return Embed.from_dict(embed_dict)
+
+    def _content_auto_index(self, content: str) -> str:
+        return content.format(
+            current_page=self.index + 1,
+            total_pages=len(self.contents),
+        )
+
     async def _ctx_start(self) -> Message:
         ctx = self.context
         assert isinstance(ctx, Context)
 
         if self.paginator_mode == PaginatorMode.EMBED:
-            msg = await ctx.send(embed=self.embeds[self.index])
+            embed = self.embeds[self.index]
+
+            if self.auto_fill_index:
+                embed = self._embed_auto_index(embed)
+
+            msg = await ctx.send(embed=embed)
         else:
-            msg = await ctx.send(self.contents[self.index])
+            content = self.contents[self.index]
+
+            if self.auto_fill_index:
+                content = self._content_auto_index(content)
+
+            msg = await ctx.send(content)
 
         return msg
 
@@ -180,11 +270,24 @@ class Paginator(PaginatorABC):
                 await self._go_next()
 
         if self.paginator_mode == PaginatorMode.EMBED:
-            await self.__message.edit(embed=self.embeds[self.index])
+            embed = self.embeds[self.index]
+
+            if self.auto_fill_index:
+                embed = self._embed_auto_index(embed)
+
+            await self.__message.edit(embed=embed)
         else:
-            await self.__message.edit(content=self.contents[self.index])
+            content = self.contents[self.index]
+
+            if self.auto_fill_index:
+                content = self._content_auto_index(content)
+
+            await self.__message.edit(content=content)
 
     async def start(self) -> None:
+        """
+        A function to start the paginator.
+        """
         context = self.context
         if self.context_mode == ContextType.CTX:
             msg = await self._ctx_start()
@@ -233,11 +336,16 @@ class Paginator(PaginatorABC):
 
                 payload = done.pop().result()
                 await self._handle_pagination(str(payload.emoji))
+
             except asyncio.TimeoutError:
                 await self.stop()
                 break
 
     async def stop(self) -> None:
+        """
+        A function to stop the paginator.
+        """
+
         assert self.__message
 
         if self.auto_delete_message:

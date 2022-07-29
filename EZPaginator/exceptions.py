@@ -1,6 +1,10 @@
 class MissingAttributeException(Exception):
-    pass
+    """
+    An exception raised when an attribute is missing.
+    """
 
 
 class InvaildArgumentException(Exception):
-    pass
+    """
+    An exception that is raised when an argument is invalid.
+    """
