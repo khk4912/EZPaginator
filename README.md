@@ -94,8 +94,7 @@ async def slash_content(interaction: discord.Interaction) -> None:
 
 Commands                   |  Slash Command
 :-------------------------:|:-------------------------:
-![](https://user-images.githubusercontent.com/30457148/181743036-18182010-6ffe-494b-9c00-6d2e4b994cf3.mov
-)  |  ![](https://user-images.githubusercontent.com/30457148/181743122-c34424ba-16ba-4269-bed0-ef5a752ff5c7.mov)
+![](https://user-images.githubusercontent.com/30457148/181743036-18182010-6ffe-494b-9c00-6d2e4b994cf3.mov)  |  ![](https://user-images.githubusercontent.com/30457148/181743122-c34424ba-16ba-4269-bed0-ef5a752ff5c7.mov)
 
 
 ### Use Custom Emoji
@@ -130,8 +129,7 @@ async def slash_content(interaction: discord.Interaction) -> None:
 
 Commands w/ custom emojis  |  Slash Command w/ extended custom emojis
 :-------------------------:|:-------------------------:
-![](https://user-images.githubusercontent.com/30457148/181746283-cb8c2593-1b42-4cdd-9e56-6d45afa12c06.mov
-)  |  ![](https://user-images.githubusercontent.com/30457148/181746387-c1248f17-7205-4264-b0c0-0142e9c42149.mov)
+![](https://user-images.githubusercontent.com/30457148/181746283-cb8c2593-1b42-4cdd-9e56-6d45afa12c06.mov)  |  ![](https://user-images.githubusercontent.com/30457148/181746387-c1248f17-7205-4264-b0c0-0142e9c42149.mov)
 
 ### Auto-fill Index mode
 
