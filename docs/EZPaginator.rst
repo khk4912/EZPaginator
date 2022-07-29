@@ -1,16 +1,13 @@
 EZPaginator package
 ===================
 
-Submodules
-----------
 
-EZPaginator.EZPaginator module
+Paginator
 ------------------------------
 
-.. automodule:: EZPaginator.EZPaginator
+.. autoclass:: EZPaginator.Paginator
    :members:
-   :undoc-members:
-   :show-inheritance:
+
 
 EZPaginator.exceptions module
 -----------------------------
@@ -20,10 +17,10 @@ EZPaginator.exceptions module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
+.. Module contents
+.. ---------------
 
-.. automodule:: EZPaginator
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. .. automodule:: EZPaginator
+..    :members:
+..    :undoc-members:
+..    :show-inheritance:
