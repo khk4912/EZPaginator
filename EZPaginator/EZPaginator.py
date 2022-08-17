@@ -1,8 +1,11 @@
 import asyncio
 from abc import ABC, abstractmethod
 from enum import Enum, auto
+from collections.abc import Sequence
+from typing import TypeVar
 
 from discord import (
+    Button,
     Embed,
     Emoji,
     Interaction,
@@ -13,6 +16,7 @@ from discord import (
 from discord.abc import User
 from discord.ext.commands import Context
 
+from .constant import DEFAULT_EMOJIS, DEFAULT_EXTENDED_EMOJIS, T_emoji
 from .exceptions import InvaildArgumentException
 
 
@@ -26,81 +30,24 @@ class PaginatorMode(Enum):
     CONTENT = auto()
 
 
-class PaginatorABC(ABC):
-    @abstractmethod
-    async def start(self) -> None:
-        pass
-
-    @abstractmethod
-    async def stop(self) -> None:
-        pass
-
-
-class Paginator(PaginatorABC):
+class PaginatorBase(ABC):
     def __init__(
         self,
         context: Context | Interaction,
+        *,
         embeds: list[Embed] = [],
         contents: list[str] = [],
         timeout: int = 30,
         start_index: int = 0,
-        auto_clear_emoji: bool = True,
-        auto_delete_message: bool = False,
-        use_extend: bool = False,
-        emojis: list[str | Emoji] = ["⬅️", "➡️"],
-        extended_emojis: list[str | Emoji] = ["⏪", "⬅️", "➡️", "⏩"],
         only: User | None = None,
-        auto_fill_index: bool = False,
-    ) -> None:
-        """_summary_
-
-        Parameters
-        ----------
-        context : Context | Interaction
-            _description_
-        timeout : int, optional
-            Timeout of the paginator, by default 30
-        embeds : list[Embed], optional
-            _description_, by default []
-        contents : list[str], optional
-            _description_, by default []
-        start_index : int, optional
-            _description_, by default 0
-        auto_clear_emoji : bool, optional
-            Whether to clear the emoji when the pagination is stopped by function stop() or by timeout. by default True.
-        auto_delete_message : bool, optional
-            Whether to delete the message when the pagination is stopped by function stop() or by timeout. by default False.
-        use_extend : bool, optional
-            Whether to use the extended emoji set(First, Previous, Next, Last). by default False.
-        emojis : list[str  |  Emoji], optional
-            List of emojis to use for pagination. by default ["⬅️", "➡️"]
-        extended_emojis : list[str  |  Emoji], optional
-            List of extended emojis to use for pagination, by default ["⏪", "⬅️", "➡️", "⏩"]
-        only : User | None, optional
-            Restrain the pagination to only the specified user, by default None.
-        auto_fill_index : bool, optional
-            Enable auto-fill index mode, by default False.
-
-        Raises
-        ------
-        InvaildArgumentException
-            _description_
-        InvaildArgumentException
-            _description_
-        """
-
+        auto_fill_index: bool = True,
+    ):
         self.context = context
         self.timeout = timeout
         self.index = start_index
-        self.auto_clear_emoji = auto_clear_emoji
-        self.auto_delete_message = auto_delete_message
 
         self.embeds = embeds
         self.contents = contents
-
-        self.use_extend = use_extend
-        self.emojis = emojis
-        self.extended_emojis = extended_emojis
 
         self.only = only
         self.auto_fill_index = auto_fill_index
@@ -122,6 +69,76 @@ class Paginator(PaginatorABC):
             raise InvaildArgumentException(
                 "Parameter 'embeds' or 'contents' must not be empty!"
             )
+
+    # TODO: @abstractmethod _ctx_start, _interaction_start..?
+
+    async def _go_first(self) -> None:
+        self.index = 0
+
+    async def _go_previous(self) -> None:
+        if self.index == 0:
+            return
+
+        self.index -= 1
+
+    async def _go_next(self) -> None:
+        if self.paginator_mode == PaginatorMode.EMBED:
+            if self.index == len(self.embeds) - 1:
+                return
+        else:
+            if self.index == len(self.contents) - 1:
+                return
+
+        self.index += 1
+
+    async def _go_last(self) -> None:
+        self.index = len(self.embeds) - 1
+
+    @abstractmethod
+    async def start(self) -> None:
+        pass
+
+    @abstractmethod
+    async def stop(self) -> None:
+        pass
+
+
+T = list[str | Emoji]
+
+
+class Paginator(PaginatorBase):
+    def __init__(
+        self,
+        context: Context | Interaction,
+        *,
+        embeds: list[Embed] = [],
+        contents: list[str] = [],
+        timeout: int = 30,
+        start_index: int = 0,
+        auto_clear_emoji: bool = True,
+        auto_delete_message: bool = False,
+        use_extend: bool = False,
+        emojis: T_emoji = DEFAULT_EMOJIS,
+        extended_emojis: T_emoji = DEFAULT_EXTENDED_EMOJIS,
+        only: User | None = None,
+        auto_fill_index: bool = False,
+    ) -> None:
+        super().__init__(
+            context=context,
+            embeds=embeds,
+            contents=contents,
+            timeout=timeout,
+            start_index=start_index,
+            only=only,
+            auto_fill_index=auto_fill_index,
+        )
+
+        self.auto_clear_emoji = auto_clear_emoji
+        self.auto_delete_message = auto_delete_message
+
+        self.use_extend = use_extend
+        self.emojis = emojis
+        self.extended_emojis = extended_emojis
 
         self.__message: Message | InteractionMessage | None = None
 
@@ -226,28 +243,6 @@ class Paginator(PaginatorABC):
         original_message = await interaction.original_message()
 
         return original_message
-
-    async def _go_first(self) -> None:
-        self.index = 0
-
-    async def _go_previous(self) -> None:
-        if self.index == 0:
-            return
-
-        self.index -= 1
-
-    async def _go_next(self) -> None:
-        if self.paginator_mode == PaginatorMode.EMBED:
-            if self.index == len(self.embeds) - 1:
-                return
-        else:
-            if self.index == len(self.contents) - 1:
-                return
-
-        self.index += 1
-
-    async def _go_last(self) -> None:
-        self.index = len(self.embeds) - 1
 
     async def _handle_pagination(self, emoji: str) -> None:
         assert self.__message
@@ -360,3 +355,39 @@ class Paginator(PaginatorABC):
             except:
                 pass
             return
+
+
+class ButtonPaginator(PaginatorBase):
+    def __init__(
+        self,
+        context: Context | Interaction,
+        *,
+        embeds: list[Embed] = [],
+        contents: list[str] = [],
+        timeout: int = 30,
+        start_index: int = 0,
+        use_extend: bool = False,
+        buttons: list[Button] = [],
+        extended_buttons: list[Button] = [],
+        auto_clear_buttons: bool = False,
+        auto_disable_buttons: bool = True,
+        auto_delete_message: bool = False,
+        only: User | None = None,
+        auto_fill_index: bool = False,
+    ):
+        super().__init__(
+            context=context,
+            embeds=embeds,
+            contents=contents,
+            timeout=timeout,
+            start_index=start_index,
+            only=only,
+            auto_fill_index=auto_fill_index,
+        )
+
+        self.use_extend = use_extend
+        self.buttons = buttons
+        self.extended_buttons = extended_buttons
+        self.auto_clear_buttons = auto_clear_buttons
+        self.auto_disable_buttons = auto_disable_buttons
+        self.auto_delete_message = auto_delete_message
